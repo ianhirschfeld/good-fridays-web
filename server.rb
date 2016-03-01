@@ -5,15 +5,18 @@ require 'soundcloud'
 
 Dotenv.load
 
+# Routes
+
 get '/tracks.json' do
-  tracks = get_tracks
+  load_client
+  tracks = get_official_tracks
   tracks.map do |track|
     if track.stream_url
       {
         id: track.id,
         title: track.title,
         duration: track.duration,
-        artwork_url: track.id == 239909100 ? url('/images/album_art_facts.jpg') : track.artwork_url.gsub('large', 't500x500'),
+        artwork_url: track_artwork_url(track),
         stream_url: "#{track.stream_url}?client_id=#{ENV['SOUNDCLOUD_CLIENT_ID']}",
         source: 'SoundCloud',
         uploader: track.user.username,
@@ -23,24 +26,58 @@ get '/tracks.json' do
 end
 
 get '/tracks_v2.json' do
-  tracks = get_tracks
-  tracks.map do |track|
-    {
-      id: track.id,
-      title: track.title,
-      duration: track.duration,
-      artwork_url: track.id == 239909100 ? url('/images/album_art_facts.jpg') : track.artwork_url.gsub('large', 't500x500'),
-      stream_url: "#{track.stream_url}?client_id=#{ENV['SOUNDCLOUD_CLIENT_ID']}",
-      permalink_url: track.permalink_url,
-      source: 'SoundCloud',
-      uploader: track.user.username,
-      streamable: track.streamable,
-    }
-  end.to_json
+  load_client
+  official_tracks = get_official_tracks
+  remix_tracks = get_remix_tracks
+  tracks = official_tracks.map { |track| track_official_data(track) }
+  tracks += remix_tracks.map { |track| track_remix_data(track) }
+  tracks.to_json
 end
 
-def get_tracks
-  client = Soundcloud.new(client_id: ENV['SOUNDCLOUD_CLIENT_ID'])
-  playlist = client.get("/playlists/#{ENV['SOUNDCLOUD_PLAYLIST_ID']}")
+# Helpers
+
+def load_client
+  @client = Soundcloud.new(client_id: ENV['SOUNDCLOUD_CLIENT_ID'])
+end
+
+def get_official_tracks
+  playlist = @client.get("/playlists/#{ENV['SOUNDCLOUD_PLAYLIST_ID']}")
   playlist.tracks
+end
+
+def get_remix_tracks
+  playlist = @client.get("/playlists/#{ENV['SOUNDCLOUD_REMIX_PLAYLIST_ID']}")
+  playlist.tracks
+end
+
+def track_official_data(track)
+  track_generic_data(track).merge({
+    artist: 'Kanye West',
+    type: 'official',
+  })
+end
+
+def track_remix_data(track)
+  track_generic_data(track).merge({
+    artist: track.user.username,
+    type: 'remix',
+  })
+end
+
+def track_generic_data(track)
+  {
+    id: track.id,
+    title: track.title,
+    duration: track.duration,
+    artwork_url: track_artwork_url(track),
+    stream_url: "#{track.stream_url}?client_id=#{ENV['SOUNDCLOUD_CLIENT_ID']}",
+    permalink_url: track.permalink_url,
+    source: 'SoundCloud',
+    uploader: track.user.username,
+    streamable: track.streamable,
+  }
+end
+
+def track_artwork_url(track)
+  track.id == 239909100 ? url('/images/album_art_facts.jpg') : track.artwork_url.gsub('large', 't500x500')
 end
