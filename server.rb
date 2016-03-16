@@ -81,9 +81,13 @@ end
 def track_title(track)
   case track.id
   when 252119549
-    'No More Parties in L.A. feat. Kendrick Lamar'
+    'No More Parties in L.A. (feat. Kendrick Lamar)'
   when 252119506
     'FACTS'
+  when 252121531
+    'Say You Will (feat. Caroline Shaw)'
+  when 252121553
+    'When I See It'
   else
     track.title
   end
@@ -95,6 +99,8 @@ def track_artwork_url(track)
     url('/images/album_art_nomoreparties.jpg')
   when 239909100, 252119506
     url('/images/album_art_facts.jpg')
+  when 252121531, 252121553
+    url('/images/album_art_sayyouwill.jpg')
   else
     track.artwork_url ? track.artwork_url.gsub('large', 't500x500') : url('/images/album_art_placeholder.jpg')
   end
