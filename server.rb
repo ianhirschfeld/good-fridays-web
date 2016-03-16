@@ -67,7 +67,7 @@ end
 def track_generic_data(track)
   {
     id: track.id,
-    title: track.title,
+    title: track_title(track),
     duration: track.duration,
     artwork_url: track_artwork_url(track),
     stream_url: "#{track.stream_url}?client_id=#{ENV['SOUNDCLOUD_CLIENT_ID']}",
@@ -78,7 +78,24 @@ def track_generic_data(track)
   }
 end
 
+def track_title(track)
+  case track.id
+  when 252119549
+    'No More Parties in L.A. feat. Kendrick Lamar'
+  when 252119506
+    'FACTS'
+  else
+    track.title
+  end
+end
+
 def track_artwork_url(track)
-  return url('/images/album_art_placeholder.jpg') unless track.artwork_url
-  track.id == 239909100 ? url('/images/album_art_facts.jpg') : track.artwork_url.gsub('large', 't500x500')
+  case track.id
+  when 252119549
+    url('/images/album_art_nomoreparties.jpg')
+  when 239909100, 252119506
+    url('/images/album_art_facts.jpg')
+  else
+    track.artwork_url ? track.artwork_url.gsub('large', 't500x500') : url('/images/album_art_placeholder.jpg')
+  end
 end
