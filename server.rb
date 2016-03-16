@@ -79,6 +79,6 @@ def track_generic_data(track)
 end
 
 def track_artwork_url(track)
-  return url('/images/album_art_placeholder.jpg') if track.artwork_url.blank?
+  return url('/images/album_art_placeholder.jpg') unless track.artwork_url
   track.id == 239909100 ? url('/images/album_art_facts.jpg') : track.artwork_url.gsub('large', 't500x500')
 end
